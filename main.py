@@ -35,10 +35,11 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 client = Client(API_KEY, SECRET_KEY)
 
-
-button_temp = KeyboardButton("🤑BTC/USD")
+button_temp1 = KeyboardButton("🤑BTC/USDT")
+button_temp2 = KeyboardButton("Spot balance")
 main_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-main_kb.add(button_temp)
+main_kb.add(button_temp1)
+main_kb.add(button_temp2)
 
 async def on_startup(dispatcher):
     await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
@@ -50,7 +51,7 @@ async def on_shutdown(dispatcher):
 async def send_welcome(message: types.Message):
     await message.reply("Hi!\nI'm CryptoBot!\nPowered by aiogram.", reply_markup=main_kb)
 
-@dp.message_handler(lambda message: message.text == '🤑BTC/USD')
+@dp.message_handler(lambda message: message.text == '🤑BTC/USDT')
 async def echo(message: types.Message):
     btc_price_json = client.get_symbol_ticker(symbol="BTCUSDT")
     await message.answer(f"Bitcoin costs {btc_price_json['price']} USDT", reply_markup=main_kb)
@@ -58,7 +59,6 @@ async def echo(message: types.Message):
 @dp.message_handler()
 async def echo(message: types.Message):
     await message.answer("Use button")
-
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
