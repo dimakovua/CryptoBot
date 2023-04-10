@@ -35,10 +35,11 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 client = Client(API_KEY, SECRET_KEY)
 
-
-button_temp = KeyboardButton("🤑BTC/USDT")
+button_temp1 = KeyboardButton("🤑BTC/USDT")
+button_temp2 = KeyboardButton("Spot balance")
 main_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-main_kb.add(button_temp)
+main_kb.add(button_temp1)
+main_kb.add(button_temp2)
 
 async def on_startup(dispatcher):
     await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
@@ -58,7 +59,6 @@ async def echo(message: types.Message):
 @dp.message_handler()
 async def echo(message: types.Message):
     await message.answer("Use button", reply_markup=main_kb)
-
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
