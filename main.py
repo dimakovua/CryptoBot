@@ -57,7 +57,7 @@ async def echo(message: types.Message):
 
 @dp.message_handler()
 async def echo(message: types.Message):
-    await message.answer("Use button")
+    await message.answer("Use button", reply_markup=main_kb)
 
 
 if __name__ == '__main__':
