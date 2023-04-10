@@ -4,18 +4,29 @@ It echoes any incoming text messages.
 """
 
 import logging
-import json
+import os
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
+from aiogram.utils.executor import start_webhook
 from aiogram.utils import executor
 from aiogram.types import ReplyKeyboardRemove, \
     ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton, message
 from binance.client import Client
 
-from config import TOKEN, SECRET_KEY, API_KEY
+#from config import TOKEN, SECRET_KEY, API_KEY
 
+TOKEN = os.getenv('BOT_TOKEN')
+HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
+API_KEY = os.getenv('API_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY')
+# Webhook settings
+WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
+WEBHOOK_PATH = f'/webhook/{TOKEN}'
+WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
 
+WEBAPP_HOST = '0.0.0.0'
+WEBAPP_PORT = os.getenv('PORT', default=8000)
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
@@ -24,9 +35,16 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 client = Client(API_KEY, SECRET_KEY)
 
+
 button_temp = KeyboardButton("🤑BTC/USDT")
 main_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 main_kb.add(button_temp)
+
+async def on_startup(dispatcher):
+    await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
+
+async def on_shutdown(dispatcher):
+    await bot.delete_webhook()
 
 @dp.message_handler(commands=['start', 'help'])
 async def send_welcome(message: types.Message):
@@ -43,4 +61,13 @@ async def echo(message: types.Message):
 
 
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True)
+    logging.basicConfig(level=logging.INFO)
+    start_webhook(
+        dispatcher=dp,
+        webhook_path=WEBHOOK_PATH,
+        skip_updates=True,
+        on_startup=on_startup,
+        on_shutdown=on_shutdown,
+        host=WEBAPP_HOST,
+        port=WEBAPP_PORT,
+    )
