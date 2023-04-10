@@ -36,7 +36,7 @@ dp = Dispatcher(bot)
 client = Client(API_KEY, SECRET_KEY)
 
 
-button_temp = KeyboardButton("🤑BTC/USDT")
+button_temp = KeyboardButton("🤑BTC/USD")
 main_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 main_kb.add(button_temp)
 
@@ -50,7 +50,7 @@ async def on_shutdown(dispatcher):
 async def send_welcome(message: types.Message):
     await message.reply("Hi!\nI'm CryptoBot!\nPowered by aiogram.", reply_markup=main_kb)
 
-@dp.message_handler(lambda message: message.text == '🤑BTC/USDT')
+@dp.message_handler(lambda message: message.text == '🤑BTC/USD')
 async def echo(message: types.Message):
     btc_price_json = client.get_symbol_ticker(symbol="BTCUSDT")
     await message.answer(f"Bitcoin costs {btc_price_json['price']} USDT", reply_markup=main_kb)
