@@ -100,25 +100,6 @@ async def start_crypto_price(message: types.Message):
     print(55555555)
 
 
-@dp.message_handler()
-async def process_crypto(message: types.Message, state: FSMContext):
-    global states
-    if (states == "crypto_price"):
-        try:
-            crypto_symbol = message.text.upper()
-            print(66666666)
-            btc_price_json = client.get_symbol_ticker(symbol=f"{crypto_symbol}USDT")
-            states = ""
-            await message.answer(f"{crypto_symbol} costs {btc_price_json['price']} USDT", reply_markup=main_kb)
-        except:
-            states = ""
-            await message.answer(f"Please try again, no crypto available", reply_markup=main_kb)
-    else:
-        states = ""
-        await message.answer("Use button")
-
-
-
 print(33333333)
 @dp.message_handler(lambda message: message.text == 'Spot balance')
 async def echo(message: types.Message):
@@ -153,6 +134,23 @@ async def echo(message: types.Message):
     result_string += f"Balance equivalent in BTC - {sum_btc} BTC\n"
     result_string += f"Balance equivalent in USDT - {own_usd} USDT"
     await message.answer(result_string, reply_markup=main_kb)
+
+@dp.message_handler()
+async def process_crypto(message: types.Message, state: FSMContext):
+    global states
+    if (states == "crypto_price"):
+        try:
+            crypto_symbol = message.text.upper()
+            print(66666666)
+            btc_price_json = client.get_symbol_ticker(symbol=f"{crypto_symbol}USDT")
+            states = ""
+            await message.answer(f"{crypto_symbol} costs {btc_price_json['price']} USDT", reply_markup=main_kb)
+        except:
+            states = ""
+            await message.answer(f"Please try again, no crypto available", reply_markup=main_kb)
+    else:
+        states = ""
+        await message.answer("Use button")
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
