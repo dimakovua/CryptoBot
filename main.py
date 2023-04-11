@@ -152,8 +152,11 @@ async def echo(message: types.Message):
 #    await message.answer("Use button")
 
 @dp.message_handler(lambda message: message.text.strip(), state=None)
-async def unmatched_input(message: types.Message):
-    await message.answer("Use button")
+async def unmatched_input(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        await message.answer("Use button")
+
 
 
 if __name__ == '__main__':
