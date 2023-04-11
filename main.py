@@ -100,14 +100,14 @@ async def start_crypto_price(message: types.Message):
     global states
     states = "crypto_price"
     await message.answer("Please input cryptocurrency you want to check")
-    print (states)
+    print(55555555)
 
-print(f"states is {states}")
+print(222222222)
 if (states == "crypto_price"):
     @dp.message_handler()
     async def process_crypto(message: types.Message, state: FSMContext):
         crypto_symbol = message.text.upper()
-        print(222222222)
+        print(66666666)
         btc_price_json = client.get_symbol_ticker(symbol=f"{crypto_symbol}USDT")
         await message.answer(f"{crypto_symbol} costs {btc_price_json['price']} USDT", reply_markup=main_kb)
 
@@ -151,6 +151,7 @@ async def echo(message: types.Message):
 print(44444444)
 @dp.message_handler()
 async def echo(message: types.Message):
+    print(77777777)
     await message.answer("Use button")
 
 if __name__ == '__main__':
