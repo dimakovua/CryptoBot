@@ -106,11 +106,12 @@ async def start_crypto_price(message: types.Message, state: FSMContext):
 async def process_crypto(message: types.Message, state: FSMContext):
     crypto_symbol = message.text.upper()
 
-    btc_price_json = client.get_symbol_ticker(symbol="{crypto_symbol}USDT")
+    btc_price_json = client.get_symbol_ticker(symbol=f"{crypto_symbol}USDT")
     await message.answer(f"{crypto_symbol} costs {btc_price_json['price']} USDT", reply_markup=main_kb)
 
     # Reset the state
     await state.finish()
+
 
 
 @dp.message_handler(lambda message: message.text == 'Spot balance')
