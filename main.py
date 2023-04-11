@@ -104,11 +104,17 @@ async def start_crypto_price(message: types.Message):
 async def process_crypto(message: types.Message, state: FSMContext):
     global states
     if (states == "crypto_price"):
-        crypto_symbol = message.text.upper()
-        print(66666666)
-        btc_price_json = client.get_symbol_ticker(symbol=f"{crypto_symbol}USDT")
-        await message.answer(f"{crypto_symbol} costs {btc_price_json['price']} USDT", reply_markup=main_kb)
+        try:
+            crypto_symbol = message.text.upper()
+            print(66666666)
+            btc_price_json = client.get_symbol_ticker(symbol=f"{crypto_symbol}USDT")
+            states = ""
+            await message.answer(f"{crypto_symbol} costs {btc_price_json['price']} USDT", reply_markup=main_kb)
+        except:
+            states = ""
+            await message.answer(f"Please try again, no crypto available", reply_markup=main_kb)
     else:
+        states = ""
         await message.answer("Use button")
 
 
