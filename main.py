@@ -100,6 +100,7 @@ async def start_crypto_price(message: types.Message):
     global states
     states = "crypto_price"
     await message.answer("Please input cryptocurrency you want to check")
+    print (states)
 
 if (states == "crypto_price"):
     @dp.message_handler()
@@ -109,8 +110,6 @@ if (states == "crypto_price"):
         btc_price_json = client.get_symbol_ticker(symbol=f"{crypto_symbol}USDT")
         await message.answer(f"{crypto_symbol} costs {btc_price_json['price']} USDT", reply_markup=main_kb)
 
-    # Reset the state
-        await state.finish()
 
 
 
@@ -148,19 +147,9 @@ async def echo(message: types.Message):
     result_string += f"Balance equivalent in USDT - {own_usd} USDT"
     await message.answer(result_string, reply_markup=main_kb)
 
-#@dp.message_handler()
-#async def echo(message: types.Message):
-#    await message.answer("Use button")
-
-@dp.message_handler(lambda message: message.text.strip(), state=None)
-async def unmatched_input(message: types.Message, state: FSMContext):
-    current_state = await state.get_state()
-    print(333333333)
-    if current_state is None and message.text.strip() not in {'Crypto price', 'Spot balance'}:
-        print(444444444)
-        await message.answer("Use button")
-
-
+@dp.message_handler()
+async def echo(message: types.Message):
+    await message.answer("Use button")
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
