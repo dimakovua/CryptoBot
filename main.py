@@ -34,7 +34,6 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 client = Client(API_KEY, SECRET_KEY)
-print(client.get_asset_balance(asset='USDT'))
 
 button_temp1 = KeyboardButton("🤑BTC/USDT")
 button_temp2 = KeyboardButton("Spot balance")
@@ -56,6 +55,11 @@ async def send_welcome(message: types.Message):
 async def echo(message: types.Message):
     btc_price_json = client.get_symbol_ticker(symbol="BTCUSDT")
     await message.answer(f"Bitcoin costs {btc_price_json['price']} USDT", reply_markup=main_kb)
+
+@dp.message_handler(lambda message: message.text == 'Spot balance')
+async def echo(message: types.Message):
+    balance_json = client.get_asset_balance(asset='USDT')
+    await message.answer(f"Your balance is {balance_json['asset']} USDT", reply_markup=main_kb)
 
 @dp.message_handler()
 async def echo(message: types.Message):
