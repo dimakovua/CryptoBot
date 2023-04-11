@@ -84,6 +84,7 @@ async def echo(message: types.Message):
 @dp.message_handler(lambda message: message.text == 'Spot balance')
 async def echo(message: types.Message):
     sum_btc = 0.0
+    crypto_prices = {}
     balances = client.get_account()
     for _balance in balances["balances"]:
         asset = _balance["asset"]
@@ -95,7 +96,8 @@ async def echo(message: types.Message):
                 else:
                     _price = client.get_symbol_ticker(symbol=asset + "BTC")
                     sum_btc += btc_quantity * float(_price["price"])
-                    await message.answer(f"Your {asset} balance is {btc_quantity}", reply_markup=main_kb)
+                   # await message.answer(f"Your {asset} balance is {btc_quantity}", reply_markup=main_kb)
+                    crypto_prices[asset] = btc_quantity
             except:
                 pass
 
@@ -106,8 +108,12 @@ async def echo(message: types.Message):
     sum_btc += float(usdt_balance['free'])/float(current_btc_price_USD)
     print(" * Spot => %.8f BTC == " % sum_btc, end="")
     print("%.8f USDT" % own_usd)
-    balance_json = client.get_asset_balance(asset='USDT')
-    await message.answer(f"* Spot => {sum_btc} BTC == {own_usd} USDT ", reply_markup=main_kb)
+    result_string = ""
+    for symbol, price in crypto_prices.items():
+        result_string += f"{symbol} - {price}\n"
+    result_string += f"USDT - {usdt_balance['free']}"
+    #await message.answer(f"* Spot => {sum_btc} BTC == {own_usd} USDT ", reply_markup=main_kb)
+    await message.answer(result_string, reply_markup=main_kb)
 
 @dp.message_handler()
 async def echo(message: types.Message):
