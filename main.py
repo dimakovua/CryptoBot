@@ -97,10 +97,10 @@ async def send_welcome(message: types.Message):
 #    await message.answer(f"Bitcoin costs {btc_price_json['price']} USDT", reply_markup=main_kb)
 
 @dp.message_handler(lambda message: message.text == 'Crypto price')
-async def echo(message: types.Message):
-    #btc_price_json = client.get_symbol_ticker(symbol="BTCUSDT")
+async def start_crypto_price(message: types.Message):
+
+    await message.answer(f"Please input cryptocurrency you want to check")
     await CryptoStates.waiting_for_crypto.set()
-    await message.answer(f"Please input cryptocurrency you want to check", reply_markup=main_kb)
 
 @dp.message_handler(lambda message: message.text.strip(), state=CryptoStates.waiting_for_crypto)
 async def process_crypto(message: types.Message, state: FSMContext):
@@ -148,8 +148,18 @@ async def echo(message: types.Message):
     result_string += f"Balance equivalent in USDT - {own_usd} USDT"
     await message.answer(result_string, reply_markup=main_kb)
 
-@dp.message_handler()
-async def echo(message: types.Message):
+#@dp.message_handler()
+#async def echo(message: types.Message):
+#    await message.answer("Use button")
+
+@dp.message_handler(lambda message: not message.text.startswith("/"), state='*', content_types=types.ContentTypes.TEXT)
+async def echo(message: types.Message, state: FSMContext):
+    # Check if the user is in the waiting_for_crypto state
+    current_state = await state.get_state()
+
+    if current_state == CryptoStates.waiting_for_crypto.state:
+        return
+
     await message.answer("Use button")
 
 if __name__ == '__main__':
