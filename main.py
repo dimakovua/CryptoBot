@@ -47,6 +47,8 @@ for _balance in balances["balances"]:
                 else:
                     _price = client.get_symbol_ticker(symbol=asset + "BTC")
                     sum_btc += btc_quantity * float(_price["price"])
+                    print(asset+" ")
+                    print(btc_quantity)
             except:
                 pass
 
