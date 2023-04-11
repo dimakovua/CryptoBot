@@ -156,9 +156,6 @@ async def echo(message: types.Message):
     await message.answer("Use button")
 
 if __name__ == '__main__':
-    # Add the FSM middleware
-    dp.middleware.setup(LoggingMiddleware())
-    dp.middleware.setup(FSMContext())
     logging.basicConfig(level=logging.INFO)
     start_webhook(
         dispatcher=dp,
