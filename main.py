@@ -98,8 +98,8 @@ async def send_welcome(message: types.Message):
 
 @dp.message_handler(lambda message: message.text.strip() == 'Crypto price')
 async def start_crypto_price(message: types.Message, state: FSMContext):
-    await message.answer("Please input cryptocurrency you want to check")
     await CryptoStates.waiting_for_crypto.set()
+    await message.answer("Please input cryptocurrency you want to check")
 
 
 @dp.message_handler(state=CryptoStates.waiting_for_crypto)
