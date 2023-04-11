@@ -96,8 +96,8 @@ async def send_welcome(message: types.Message):
 #    btc_price_json = client.get_symbol_ticker(symbol="BTCUSDT")
 #    await message.answer(f"Bitcoin costs {btc_price_json['price']} USDT", reply_markup=main_kb)
 
-@dp.message_handler(lambda message: message.text == 'Crypto price')
-async def start_crypto_price(message: types.Message):
+@dp.message_handler(lambda message: message.text.strip() == 'Crypto price', state='*')
+async def start_crypto_price(message: types.Message, state: FSMContext):
     await message.answer("Please input cryptocurrency you want to check")
     await CryptoStates.waiting_for_crypto.set()
 
@@ -151,9 +151,10 @@ async def echo(message: types.Message):
 #async def echo(message: types.Message):
 #    await message.answer("Use button")
 
-@dp.message_handler(state=None, content_types=types.ContentTypes.TEXT)
-async def echo(message: types.Message):
+@dp.message_handler(lambda message: message.text.strip(), state=None)
+async def unmatched_input(message: types.Message):
     await message.answer("Use button")
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
