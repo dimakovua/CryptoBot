@@ -99,8 +99,8 @@ async def send_welcome(message: types.Message):
 @dp.message_handler(lambda message: message.text == 'Crypto price')
 async def echo(message: types.Message):
     #btc_price_json = client.get_symbol_ticker(symbol="BTCUSDT")
-    await message.answer(f"Please input cryptocurrency you want to check", reply_markup=main_kb)
     await CryptoStates.waiting_for_crypto.set()
+    await message.answer(f"Please input cryptocurrency you want to check", reply_markup=main_kb)
 
 @dp.message_handler(lambda message: message.text.strip(), state=CryptoStates.waiting_for_crypto)
 async def process_crypto(message: types.Message, state: FSMContext):
