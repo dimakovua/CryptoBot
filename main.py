@@ -94,7 +94,7 @@ async def send_welcome(message: types.Message):
 #async def echo(message: types.Message):
 #    btc_price_json = client.get_symbol_ticker(symbol="BTCUSDT")
 #    await message.answer(f"Bitcoin costs {btc_price_json['price']} USDT", reply_markup=main_kb)
-
+print(11111111)
 @dp.message_handler(lambda message: message.text.strip() == 'Crypto price')
 async def start_crypto_price(message: types.Message):
     global states
@@ -113,7 +113,7 @@ if (states == "crypto_price"):
 
 
 
-
+print(33333333)
 @dp.message_handler(lambda message: message.text == 'Spot balance')
 async def echo(message: types.Message):
     sum_btc = 0.0
@@ -148,6 +148,7 @@ async def echo(message: types.Message):
     result_string += f"Balance equivalent in USDT - {own_usd} USDT"
     await message.answer(result_string, reply_markup=main_kb)
 
+print(44444444)
 @dp.message_handler()
 async def echo(message: types.Message):
     await message.answer("Use button")
