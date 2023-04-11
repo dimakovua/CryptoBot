@@ -102,7 +102,7 @@ async def start_crypto_price(message: types.Message, state: FSMContext):
     await CryptoStates.waiting_for_crypto.set()
 
 
-@dp.message_handler(lambda message: message.text.strip(), state=CryptoStates.waiting_for_crypto)
+@dp.message_handler(state=CryptoStates.waiting_for_crypto)
 async def process_crypto(message: types.Message, state: FSMContext):
     crypto_symbol = message.text.upper()
 
