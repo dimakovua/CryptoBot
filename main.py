@@ -144,8 +144,7 @@ async def process_crypto(message: types.Message, state: FSMContext):
             print(66666666)
             btc_price_json = client.get_symbol_ticker(symbol=f"{crypto_symbol}USDT")
             states = ""
-            temp = round(btc_price_json['price'], 4)
-            await message.answer(f"{crypto_symbol} costs {temp} USDT", reply_markup=main_kb)
+            await message.answer(f"{crypto_symbol} costs {round(float(btc_price_json['price']), 4)} USDT", reply_markup=main_kb)
         except:
             states = ""
             await message.answer(f"Please try again, no crypto available", reply_markup=main_kb)
