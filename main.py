@@ -53,8 +53,8 @@ for _balance in balances["balances"]:
 current_btc_price_USD = client.get_symbol_ticker(symbol="BTCUSDT")["price"]
 own_usd = sum_btc * float(current_btc_price_USD)
 usdt_balance = client.get_asset_balance(asset='USDT')
-own_usd += usdt_balance
-sum_btc += usdt_balance/float(current_btc_price_USD)
+own_usd += usdt_balance['free']
+sum_btc += usdt_balance['free']/float(current_btc_price_USD)
 print(" * Spot => %.8f BTC == " % sum_btc, end="")
 print("%.8f USDT" % own_usd)
 
