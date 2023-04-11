@@ -26,7 +26,7 @@ from aiogram.dispatcher.filters import Command
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 
-state = ""
+states = ""
 
 #from config import TOKEN, SECRET_KEY, API_KEY
 
@@ -96,11 +96,12 @@ async def send_welcome(message: types.Message):
 #    await message.answer(f"Bitcoin costs {btc_price_json['price']} USDT", reply_markup=main_kb)
 
 @dp.message_handler(lambda message: message.text.strip() == 'Crypto price')
-async def start_crypto_price(message: types.Message, state: FSMContext):
-    state = "crypto_price"
+async def start_crypto_price(message: types.Message):
+    global states
+    states = "crypto_price"
     await message.answer("Please input cryptocurrency you want to check")
 
-if (state == "crypto_price"):
+if (states == "crypto_price"):
     @dp.message_handler()
     async def process_crypto(message: types.Message, state: FSMContext):
         crypto_symbol = message.text.upper()
