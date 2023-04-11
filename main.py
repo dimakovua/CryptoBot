@@ -102,6 +102,7 @@ async def start_crypto_price(message: types.Message):
     await message.answer("Please input cryptocurrency you want to check")
     print (states)
 
+print(f"states is {states}")
 if (states == "crypto_price"):
     @dp.message_handler()
     async def process_crypto(message: types.Message, state: FSMContext):
