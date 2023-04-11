@@ -110,8 +110,9 @@ async def echo(message: types.Message):
     print("%.8f USDT" % own_usd)
     result_string = ""
     for symbol, price in crypto_prices.items():
-        result_string += f"{symbol} - {price}\n"
-    result_string += f"USDT - {usdt_balance['free']}"
+        result_string += f"{price} {symbol}\n"
+    result_string += f"{usdt_balance['free']} USDT"
+    result_string += f"All balance equivalent in BTC - {sum_btc} == {own_usd} USDT"
     #await message.answer(f"* Spot => {sum_btc} BTC == {own_usd} USDT ", reply_markup=main_kb)
     await message.answer(result_string, reply_markup=main_kb)
 
