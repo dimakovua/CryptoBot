@@ -59,7 +59,7 @@ async def echo(message: types.Message):
 @dp.message_handler(lambda message: message.text == 'Spot balance')
 async def echo(message: types.Message):
     balance_json = client.get_asset_balance(asset='USDT')
-    await message.answer(f"Your balance is {balance_json['asset']} USDT", reply_markup=main_kb)
+    await message.answer(f"Your balance is {balance_json['free']} USDT", reply_markup=main_kb)
 
 @dp.message_handler()
 async def echo(message: types.Message):
