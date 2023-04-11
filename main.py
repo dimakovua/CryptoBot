@@ -90,10 +90,7 @@ async def on_shutdown(dispatcher):
 async def send_welcome(message: types.Message):
     await message.reply("Hi!\nI'm CryptoBot!\nPowered by aiogram.", reply_markup=main_kb)
 
-#@dp.message_handler(lambda message: message.text == '🤑BTC/USDT')
-#async def echo(message: types.Message):
-#    btc_price_json = client.get_symbol_ticker(symbol="BTCUSDT")
-#    await message.answer(f"Bitcoin costs {btc_price_json['price']} USDT", reply_markup=main_kb)
+
 print(11111111)
 @dp.message_handler(lambda message: message.text.strip() == 'Crypto price')
 async def start_crypto_price(message: types.Message):
@@ -102,14 +99,17 @@ async def start_crypto_price(message: types.Message):
     await message.answer("Please input cryptocurrency you want to check")
     print(55555555)
 
-print(222222222)
-if (states == "crypto_price"):
-    @dp.message_handler()
-    async def process_crypto(message: types.Message, state: FSMContext):
+
+@dp.message_handler()
+async def process_crypto(message: types.Message, state: FSMContext):
+    global states
+    if (states == "crypto_price"):
         crypto_symbol = message.text.upper()
         print(66666666)
         btc_price_json = client.get_symbol_ticker(symbol=f"{crypto_symbol}USDT")
         await message.answer(f"{crypto_symbol} costs {btc_price_json['price']} USDT", reply_markup=main_kb)
+    else:
+        await message.answer("Use button")
 
 
 
@@ -147,12 +147,6 @@ async def echo(message: types.Message):
     result_string += f"Balance equivalent in BTC - {sum_btc} BTC\n"
     result_string += f"Balance equivalent in USDT - {own_usd} USDT"
     await message.answer(result_string, reply_markup=main_kb)
-
-print(44444444)
-@dp.message_handler()
-async def echo(message: types.Message):
-    print(77777777)
-    await message.answer("Use button")
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
