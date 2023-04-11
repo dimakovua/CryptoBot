@@ -99,14 +99,14 @@ async def send_welcome(message: types.Message):
 @dp.message_handler(lambda message: message.text.strip() == 'Crypto price')
 async def start_crypto_price(message: types.Message, state: FSMContext):
     await CryptoStates.waiting_for_crypto.set()
-    await print(state.get_state())
+    print(111111111)
     await message.answer("Please input cryptocurrency you want to check")
 
 
 @dp.message_handler(state=CryptoStates.waiting_for_crypto)
 async def process_crypto(message: types.Message, state: FSMContext):
     crypto_symbol = message.text.upper()
-
+    print(222222222)
     btc_price_json = client.get_symbol_ticker(symbol=f"{crypto_symbol}USDT")
     await message.answer(f"{crypto_symbol} costs {btc_price_json['price']} USDT", reply_markup=main_kb)
 
@@ -156,7 +156,9 @@ async def echo(message: types.Message):
 @dp.message_handler(lambda message: message.text.strip(), state=None)
 async def unmatched_input(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
+    print(333333333)
     if current_state is None and message.text.strip() not in {'Crypto price', 'Spot balance'}:
+        print(444444444)
         await message.answer("Use button")
 
 
