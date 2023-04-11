@@ -14,6 +14,21 @@ from aiogram.types import ReplyKeyboardRemove, \
     InlineKeyboardMarkup, InlineKeyboardButton, message
 from binance.client import Client
 
+from aiogram.dispatcher.filters import Text
+from aiogram.types import ParseMode
+from aiogram.utils.markdown import text, bold
+from aiogram.dispatcher import FSMContext
+from aiogram.contrib.middlewares.logging import LoggingMiddleware
+from aiogram import types
+
+# Import the FSM and its states
+from aiogram.dispatcher.filters import Command
+from aiogram.dispatcher.filters.state import State, StatesGroup
+
+
+class CryptoStates(StatesGroup):
+    waiting_for_crypto = State()
+
 #from config import TOKEN, SECRET_KEY, API_KEY
 
 TOKEN = os.getenv('BOT_TOKEN')
@@ -60,7 +75,7 @@ sum_btc += float(usdt_balance['free'])/float(current_btc_price_USD)
 print(" * Spot => %.8f BTC == " % sum_btc, end="")
 print("%.8f USDT" % own_usd)
 
-button_temp1 = KeyboardButton("🤑BTC/USDT")
+button_temp1 = KeyboardButton("Crypto price")
 button_temp2 = KeyboardButton("Spot balance")
 main_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 main_kb.add(button_temp1)
@@ -76,10 +91,28 @@ async def on_shutdown(dispatcher):
 async def send_welcome(message: types.Message):
     await message.reply("Hi!\nI'm CryptoBot!\nPowered by aiogram.", reply_markup=main_kb)
 
-@dp.message_handler(lambda message: message.text == '🤑BTC/USDT')
+#@dp.message_handler(lambda message: message.text == '🤑BTC/USDT')
+#async def echo(message: types.Message):
+#    btc_price_json = client.get_symbol_ticker(symbol="BTCUSDT")
+#    await message.answer(f"Bitcoin costs {btc_price_json['price']} USDT", reply_markup=main_kb)
+
+@dp.message_handler(lambda message: message.text == 'Crypto price')
 async def echo(message: types.Message):
-    btc_price_json = client.get_symbol_ticker(symbol="BTCUSDT")
-    await message.answer(f"Bitcoin costs {btc_price_json['price']} USDT", reply_markup=main_kb)
+    #btc_price_json = client.get_symbol_ticker(symbol="BTCUSDT")
+    await message.answer(f"Please input cryptocurrency you want to check", reply_markup=main_kb)
+    await CryptoStates.waiting_for_crypto.set()
+
+@dp.message_handler(lambda message: message.text.strip(), state=CryptoStates.waiting_for_crypto)
+async def process_crypto(message: types.Message, state: FSMContext):
+    # Get the input cryptocurrency
+    crypto_symbol = message.text.upper()
+
+    btc_price_json = client.get_symbol_ticker(symbol="{crypto_symbol}USDT")
+    await message.answer(f"{crypto_symbol} costs {btc_price_json['price']} USDT", reply_markup=main_kb)
+
+    # Reset the state
+    await state.finish()
+
 
 @dp.message_handler(lambda message: message.text == 'Spot balance')
 async def echo(message: types.Message):
@@ -96,7 +129,6 @@ async def echo(message: types.Message):
                 else:
                     _price = client.get_symbol_ticker(symbol=asset + "BTC")
                     sum_btc += btc_quantity * float(_price["price"])
-                   # await message.answer(f"Your {asset} balance is {btc_quantity}", reply_markup=main_kb)
                     crypto_prices[asset] = btc_quantity
             except:
                 pass
@@ -106,7 +138,7 @@ async def echo(message: types.Message):
     usdt_balance = client.get_asset_balance(asset='USDT')
     own_usd += float(usdt_balance['free'])
     sum_btc += float(usdt_balance['free'])/float(current_btc_price_USD)
-    sum_btc = round(sum_btc, 4)
+    sum_btc = round(sum_btc, 6)
     own_usd = round(own_usd, 4)
     result_string = ""
     for symbol, price in crypto_prices.items():
@@ -114,7 +146,6 @@ async def echo(message: types.Message):
     result_string += f"{usdt_balance['free']} USDT\n"
     result_string += f"Balance equivalent in BTC - {sum_btc} BTC\n"
     result_string += f"Balance equivalent in USDT - {own_usd} USDT"
-    #await message.answer(f"* Spot => {sum_btc} BTC == {own_usd} USDT ", reply_markup=main_kb)
     await message.answer(result_string, reply_markup=main_kb)
 
 @dp.message_handler()
