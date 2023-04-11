@@ -35,6 +35,27 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 client = Client(API_KEY, SECRET_KEY)
 
+def spot_balance(self):
+        sum_btc = 0.0
+        balances = self.client.get_account()
+        for _balance in balances["balances"]:
+            asset = _balance["asset"]
+            if float(_balance["free"]) != 0.0 or float(_balance["locked"]) != 0.0:
+                try:
+                    btc_quantity = float(_balance["free"]) + float(_balance["locked"])
+                    if asset == "BTC":
+                        sum_btc += btc_quantity
+                    else:
+                        _price = self.client.get_symbol_ticker(symbol=asset + "BTC")
+                        sum_btc += btc_quantity * float(_price["price"])
+                except:
+                    pass
+
+        current_btc_price_USD = self.client.get_symbol_ticker(symbol="BTCUSDT")["price"]
+        own_usd = sum_btc * float(current_btc_price_USD)
+        print(" * Spot => %.8f BTC == " % sum_btc, end="")
+        print("%.8f USDT" % own_usd)
+
 button_temp1 = KeyboardButton("🤑BTC/USDT")
 button_temp2 = KeyboardButton("Spot balance")
 main_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
