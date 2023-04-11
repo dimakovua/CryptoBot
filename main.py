@@ -34,7 +34,7 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 client = Client(API_KEY, SECRET_KEY)
-print(client.get_account())
+print(client.get_asset_balance(asset='BTC'))
 
 button_temp1 = KeyboardButton("🤑BTC/USDT")
 button_temp2 = KeyboardButton("Spot balance")
