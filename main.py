@@ -169,13 +169,16 @@ async def get_btc_usdt_price():
 
 async def send_btc_usdt_price(message: types.Message):
     price = await get_btc_usdt_price()
-    await bot.send_message(f"Latest BTC/USDT price: ${price:.2f}", parse_mode=ParseMode.MARKDOWN)
+    if price:
+        await message.answer(f"Latest BTC/USDT price: ${price:.2f}", parse_mode=ParseMode.MARKDOWN)
+    else:
+        await message.answer("Sorry, we couldn't fetch the price. Please try again later.")
 
-
-async def price_update_loop():
+async def price_update_loop(message: types.Message):
     while True:
-        await send_btc_usdt_price(message=types.Message)
+        await send_btc_usdt_price(message)
         await asyncio.sleep(1)  # 5 minutes
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
