@@ -142,7 +142,7 @@ async def echo(message: types.Message):
     await message.answer(result_string, reply_markup=main_kb)
 
 #################################
-stop_event = asyncio.Event()
+monitoring_task = None
 
 async def get_btc_usdt_price():
     ticker = client.get_symbol_ticker(symbol='BTCUSDT')
@@ -156,26 +156,28 @@ async def send_btc_usdt_price(message: types.Message):
         await message.answer("Sorry, we couldn't fetch the price. Please try again later.")
 
 async def price_update_loop(message: types.Message):
-    global is_monitoring
-    while is_monitoring:
+    while True:
         await send_btc_usdt_price(message)
         await asyncio.sleep(1)  # 1 second
 
 @dp.message_handler(lambda message: message.text == 'Price monitoring')
 async def start_price_monitoring(message: types.Message):
-    global is_monitoring
-    if not is_monitoring:
+    global monitoring_task
+    if monitoring_task is None:
         await message.reply("Starting price monitoring...")
-        stop_event = asyncio.Event()
-        asyncio.create_task(price_update_loop(message, stop_event))
+        monitoring_task = asyncio.create_task(price_update_loop(message))
+    else:
+        await message.reply("Price monitoring is already running.")
 
 @dp.message_handler(lambda message: message.text == 'Stop monitoring')
 async def stop_price_monitoring(message: types.Message):
-    global is_monitoring
-    if is_monitoring:
-        is_monitoring = False
+    global monitoring_task
+    if monitoring_task is not None:
+        monitoring_task.cancel()
+        monitoring_task = None
         await message.reply("Stopping price monitoring...")
-    stop_event.set()
+    else:
+        await message.reply("Price monitoring is not running.")
 
 
 @dp.message_handler()
