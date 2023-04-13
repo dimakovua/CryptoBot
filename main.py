@@ -164,7 +164,7 @@ async def process_crypto(message: types.Message, state: FSMContext):
         await message.answer("Use button")
 
 async def get_btc_usdt_price():
-        ticker = client.get_ticker_price(symbol='BTCUSDT')
+        ticker = client.get_symbol_ticker(symbol='BTCUSDT')
         return float(ticker['price'])
 
 async def send_btc_usdt_price():
