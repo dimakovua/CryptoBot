@@ -4,6 +4,7 @@ It echoes any incoming text messages.
 """
 
 import logging
+import asyncio
 import os
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
@@ -76,9 +77,11 @@ print("%.8f USDT" % own_usd)
 
 button_temp1 = KeyboardButton("Crypto price")
 button_temp2 = KeyboardButton("Spot balance")
+button_temp3 = KeyboardButton("Price monitoring")
 main_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 main_kb.add(button_temp1)
 main_kb.add(button_temp2)
+main_kb.add(button_temp3)
 
 async def on_startup(dispatcher):
     await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
@@ -149,10 +152,29 @@ async def process_crypto(message: types.Message, state: FSMContext):
             states = ""
             if (crypto_symbol=="USDT"):
                 await message.answer(f"USDT costs 1.0000 USDT", reply_markup=main_kb)
-            await message.answer(f"Please try again, no crypto available", reply_markup=main_kb)
+            else:
+                await message.answer(f"Please try again, no crypto available", reply_markup=main_kb)
     else:
         states = ""
         await message.answer("Use button")
+
+async def get_btc_usdt_price():
+        ticker = client.get_ticker_price(symbol='BTCUSDT')
+        return float(ticker['price'])
+
+async def send_btc_usdt_price():
+    price = await get_btc_usdt_price()
+    await message.answer(f"Latest BTC/USDT price: ${price:.2f}", parse_mode=ParseMode.MARKDOWN)
+
+async def price_update_loop():
+    while True:
+        await send_btc_usdt_price()
+        await asyncio.sleep(1)  # 5 minutes
+
+@dp.message_handler(lambda message: message.text == 'Price monitoring')
+async def start_price_monitoring(message: types.Message):
+    await message.reply("Starting price monitoring...")
+    asyncio.create_task(price_update_loop())
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
