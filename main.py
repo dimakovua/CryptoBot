@@ -167,7 +167,7 @@ async def get_btc_usdt_price():
         ticker = client.get_symbol_ticker(symbol='BTCUSDT')
         return float(ticker['price'])
 
-async def send_btc_usdt_price():
+async def send_btc_usdt_price(message: types.Message):
     price = await get_btc_usdt_price()
     await message.answer(f"Latest BTC/USDT price: ${price:.2f}", parse_mode=ParseMode.MARKDOWN)
 
