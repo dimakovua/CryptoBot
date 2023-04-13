@@ -28,6 +28,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 
 states = ""
+is_monitoring = False
 
 #from config import TOKEN, SECRET_KEY, API_KEY
 
@@ -155,19 +156,25 @@ async def send_btc_usdt_price(message: types.Message):
         await message.answer("Sorry, we couldn't fetch the price. Please try again later.")
 
 async def price_update_loop(message: types.Message):
-    while not stop_event.is_set():
+    global is_monitoring
+    while is_monitoring:
         await send_btc_usdt_price(message)
         await asyncio.sleep(1)  # 1 second
 
 @dp.message_handler(lambda message: message.text == 'Price monitoring')
 async def start_price_monitoring(message: types.Message):
-    await message.reply("Starting price monitoring...")
-    stop_event = asyncio.Event()
-    asyncio.create_task(price_update_loop(message, stop_event))
+    global is_monitoring
+    if not is_monitoring:
+        await message.reply("Starting price monitoring...")
+        stop_event = asyncio.Event()
+        asyncio.create_task(price_update_loop(message, stop_event))
 
 @dp.message_handler(lambda message: message.text == 'Stop monitoring')
 async def stop_price_monitoring(message: types.Message):
-    await message.reply("Stopping price monitoring...")
+    global is_monitoring
+    if is_monitoring:
+        is_monitoring = False
+        await message.reply("Stopping price monitoring...")
     stop_event.set()
 
 
