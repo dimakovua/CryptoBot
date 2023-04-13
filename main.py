@@ -78,10 +78,12 @@ print("%.8f USDT" % own_usd)
 button_temp1 = KeyboardButton("Crypto price")
 button_temp2 = KeyboardButton("Spot balance")
 button_temp3 = KeyboardButton("Price monitoring")
+button_temp4 = KeyboardButton("Stop monitoring")
 main_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 main_kb.add(button_temp1)
 main_kb.add(button_temp2)
 main_kb.add(button_temp3)
+main_kb.add(button_temp4)
 
 async def on_startup(dispatcher):
     await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
@@ -138,6 +140,8 @@ async def echo(message: types.Message):
     result_string += f"Balance equivalent in USDT - {own_usd} USDT"
     await message.answer(result_string, reply_markup=main_kb)
 
+#################################
+stop_event = asyncio.Event()
 
 async def get_btc_usdt_price():
     ticker = client.get_symbol_ticker(symbol='BTCUSDT')
@@ -151,15 +155,20 @@ async def send_btc_usdt_price(message: types.Message):
         await message.answer("Sorry, we couldn't fetch the price. Please try again later.")
 
 async def price_update_loop(message: types.Message):
-    while True:
+    while not stop_event.is_set():
         await send_btc_usdt_price(message)
         await asyncio.sleep(1)  # 1 second
 
 @dp.message_handler(lambda message: message.text == 'Price monitoring')
 async def start_price_monitoring(message: types.Message):
     await message.reply("Starting price monitoring...")
-    asyncio.create_task(price_update_loop(message))
+    stop_event = asyncio.Event()
+    asyncio.create_task(price_update_loop(message, stop_event))
 
+@dp.message_handler(lambda message: message.text == 'Stop monitoring')
+async def stop_price_monitoring(message: types.Message):
+    await message.reply("Stopping price monitoring...")
+    stop_event.set()
 
 
 @dp.message_handler()
