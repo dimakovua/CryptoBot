@@ -176,8 +176,18 @@ async def send_btc_usdt_price(message: types.Message):
 
 async def price_update_loop(message: types.Message):
     while True:
-        await send_btc_usdt_price(message)
+        new_message = types.Message(
+            message_id=message.message_id + 1,
+            from_user=message.from_user,
+            date=message.date,
+            chat=message.chat,
+            content_type=message.content_type,
+            options=message.options,
+            json=message.json,
+        )
+        await send_btc_usdt_price(new_message)
         await asyncio.sleep(1)  # 5 minutes
+
 
 
 if __name__ == '__main__':
