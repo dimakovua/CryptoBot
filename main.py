@@ -138,10 +138,29 @@ async def echo(message: types.Message):
     result_string += f"Balance equivalent in USDT - {own_usd} USDT"
     await message.answer(result_string, reply_markup=main_kb)
 
+
+async def get_btc_usdt_price():
+    ticker = client.get_symbol_ticker(symbol='BTCUSDT')
+    return float(ticker['price'])
+
+async def send_btc_usdt_price(message: types.Message):
+    price = await get_btc_usdt_price()
+    if price:
+        await message.answer(f"Latest BTC/USDT price: ${price:.2f}", parse_mode=ParseMode.MARKDOWN)
+    else:
+        await message.answer("Sorry, we couldn't fetch the price. Please try again later.")
+
+async def price_update_loop(message: types.Message):
+    while True:
+        await send_btc_usdt_price(message)
+        await asyncio.sleep(1)  # 1 second
+
 @dp.message_handler(lambda message: message.text == 'Price monitoring')
 async def start_price_monitoring(message: types.Message):
     await message.reply("Starting price monitoring...")
-    asyncio.create_task(price_update_loop())
+    asyncio.create_task(price_update_loop(message))
+
+
 
 @dp.message_handler()
 async def process_crypto(message: types.Message, state: FSMContext):
@@ -162,33 +181,6 @@ async def process_crypto(message: types.Message, state: FSMContext):
     else:
         states = ""
         await message.answer("Use button")
-
-async def get_btc_usdt_price():
-        ticker = client.get_symbol_ticker(symbol='BTCUSDT')
-        return float(ticker['price'])
-
-async def send_btc_usdt_price(message: types.Message):
-    price = await get_btc_usdt_price()
-    if price:
-        await message.answer(f"Latest BTC/USDT price: ${price:.2f}", parse_mode=ParseMode.MARKDOWN)
-    else:
-        await message.answer("Sorry, we couldn't fetch the price. Please try again later.")
-
-async def price_update_loop(message: types.Message):
-    while True:
-        new_message = types.Message(
-            message_id=message.message_id + 1,
-            from_user=message.from_user,
-            date=message.date,
-            chat=message.chat,
-            content_type=message.content_type,
-            options=message.options,
-            json=message.json,
-        )
-        await send_btc_usdt_price(new_message)
-        await asyncio.sleep(1)  # 5 minutes
-
-
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
