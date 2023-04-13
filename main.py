@@ -147,6 +147,8 @@ async def process_crypto(message: types.Message, state: FSMContext):
             await message.answer(f"{crypto_symbol} costs {round(float(btc_price_json['price']), 4)} USDT", reply_markup=main_kb)
         except:
             states = ""
+            if (crypto_symbol=="USDT"):
+                await message.answer(f"USDT costs 1.0000 USDT", reply_markup=main_kb)
             await message.answer(f"Please try again, no crypto available", reply_markup=main_kb)
     else:
         states = ""
