@@ -138,6 +138,11 @@ async def echo(message: types.Message):
     result_string += f"Balance equivalent in USDT - {own_usd} USDT"
     await message.answer(result_string, reply_markup=main_kb)
 
+@dp.message_handler(lambda message: message.text == 'Price monitoring')
+async def start_price_monitoring(message: types.Message):
+    await message.reply("Starting price monitoring...")
+    asyncio.create_task(price_update_loop())
+
 @dp.message_handler()
 async def process_crypto(message: types.Message, state: FSMContext):
     global states
@@ -170,11 +175,6 @@ async def price_update_loop():
     while True:
         await send_btc_usdt_price()
         await asyncio.sleep(1)  # 5 minutes
-
-@dp.message_handler(lambda message: message.text == 'Price monitoring')
-async def start_price_monitoring(message: types.Message):
-    await message.reply("Starting price monitoring...")
-    asyncio.create_task(price_update_loop())
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
