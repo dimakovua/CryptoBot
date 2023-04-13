@@ -169,7 +169,8 @@ async def get_btc_usdt_price():
 
 async def send_btc_usdt_price(message: types.Message):
     price = await get_btc_usdt_price()
-    await message.reply(f"Latest BTC/USDT price: ${price:.2f}")
+    await bot.send_message(f"Latest BTC/USDT price: ${price:.2f}", parse_mode=ParseMode.MARKDOWN)
+
 
 async def price_update_loop():
     while True:
