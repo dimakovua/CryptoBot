@@ -130,6 +130,7 @@ async def echo(message: types.Message):
 
 #################################
 monitoring_task = None
+monitoring_flag = False
 
 async def get_btc_usdt_price(symbol: str):
     ticker = client.get_symbol_ticker(symbol=symbol + 'USDT')
@@ -143,7 +144,9 @@ async def send_crypto_usdt_price(message: types.Message, symbol: str):
         await message.answer("Sorry, we couldn't fetch the price. Please try again later.")
 
 async def price_update_loop(message: types.Message, interval: int, symbol: str):
-    while True:
+    global monitoring_flag
+    monitoring_flag = True
+    while monitoring_flag:
         await send_crypto_usdt_price(message, symbol)
         await asyncio.sleep(interval)  # set interval
 
@@ -167,7 +170,8 @@ async def set_crypto_symbol(message: types.Message):
 @dp.message_handler(lambda message: message.text in ['5 sec', '1 min', '30 min', '1 hour', '1 day'])
 async def set_monitoring_interval(message: types.Message):
     global monitoring_task
-    if monitoring_task is None:
+    global monitoring_flag
+    if monitoring_task is None and not monitoring_flag:
         intervals = {
             '5 sec': 5,
             '1 min': 60,
@@ -176,8 +180,9 @@ async def set_monitoring_interval(message: types.Message):
             '1 day': 86400
         }
         interval = intervals[message.text]
-        await message.reply(f"Starting price monitoring every {message.text}...", reply_markup=main_kb)
-        monitoring_task = asyncio.create_task(price_update_loop(message, interval))
+        symbol = message.reply_to_message.text.upper()
+        await message.reply(f"Starting price monitoring for {symbol}/USDT every {message.text}...", reply_markup=main_kb)
+        monitoring_task = asyncio.create_task(price_update_loop(message, interval, symbol))
     else:
         await message.reply("Price monitoring is already running. Stop it first.", reply_markup=main_kb)
 
@@ -185,7 +190,9 @@ async def set_monitoring_interval(message: types.Message):
 @dp.message_handler(lambda message: message.text == 'Stop monitoring')
 async def stop_price_monitoring(message: types.Message):
     global monitoring_task
+    global monitoring_flag
     if monitoring_task is not None:
+        monitoring_flag = False
         monitoring_task.cancel()
         monitoring_task = None
         await message.reply("Stopping price monitoring...")
