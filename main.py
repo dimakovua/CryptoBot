@@ -131,6 +131,7 @@ async def echo(message: types.Message):
 #################################
 monitoring_task = None
 monitoring_flag = False
+ticker = ""
 
 async def get_btc_usdt_price(symbol: str):
     print("get_btc_usdt_price")
@@ -165,6 +166,8 @@ async def start_price_monitoring(message: types.Message):
 @dp.message_handler(regexp='^[A-Z]{2,5}$')
 async def set_crypto_symbol(message: types.Message):
     print("set_crypto_symbol")
+    global ticker 
+    ticker = message.text
     global monitoring_task
     if monitoring_task is None:
         symbol = message.text
@@ -177,6 +180,7 @@ async def set_monitoring_interval(message: types.Message):
     print("set_monitoring_interval")
     global monitoring_task
     global monitoring_flag
+    global ticker
     if monitoring_task is None and not monitoring_flag:
         intervals = {
             '5 sec': 5,
@@ -186,9 +190,8 @@ async def set_monitoring_interval(message: types.Message):
             '1 day': 86400
         }
         interval = intervals[message.text]
-        symbol = message.reply_to_message.text.upper()
-        await message.reply(f"Starting price monitoring for {symbol}/USDT every {message.text}...", reply_markup=main_kb)
-        monitoring_task = asyncio.create_task(price_update_loop(message, interval, symbol))
+        await message.reply(f"Starting price monitoring for {ticker}/USDT every {message.text}...", reply_markup=main_kb)
+        monitoring_task = asyncio.create_task(price_update_loop(message, interval, ticker))
     else:
         await message.reply("Price monitoring is already running. Stop it first.", reply_markup=main_kb)
 
