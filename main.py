@@ -51,31 +51,6 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 client = Client(API_KEY, SECRET_KEY)
 
-sum_btc = 0.0
-balances = client.get_account()
-for _balance in balances["balances"]:
-        asset = _balance["asset"]
-        if float(_balance["free"]) != 0.0 or float(_balance["locked"]) != 0.0:
-            try:
-                btc_quantity = float(_balance["free"]) + float(_balance["locked"])
-                if asset == "BTC":
-                    sum_btc += btc_quantity
-                else:
-                    _price = client.get_symbol_ticker(symbol=asset + "BTC")
-                    sum_btc += btc_quantity * float(_price["price"])
-                    print(asset+" ")
-                    print(btc_quantity)
-            except:
-                pass
-
-current_btc_price_USD = client.get_symbol_ticker(symbol="BTCUSDT")["price"]
-own_usd = sum_btc * float(current_btc_price_USD)
-usdt_balance = client.get_asset_balance(asset='USDT')
-own_usd += float(usdt_balance['free'])
-sum_btc += float(usdt_balance['free'])/float(current_btc_price_USD)
-print(" * Spot => %.8f BTC == " % sum_btc, end="")
-print("%.8f USDT" % own_usd)
-
 button_temp1 = KeyboardButton("Crypto price")
 button_temp2 = KeyboardButton("Spot balance")
 button_temp3 = KeyboardButton("Price monitoring")
@@ -186,7 +161,6 @@ async def process_crypto(message: types.Message, state: FSMContext):
     if (states == "crypto_price"):
         try:
             crypto_symbol = message.text.upper()
-            print(66666666)
             btc_price_json = client.get_symbol_ticker(symbol=f"{crypto_symbol}USDT")
             states = ""
             await message.answer(f"{crypto_symbol} costs {round(float(btc_price_json['price']), 4)} USDT", reply_markup=main_kb)
