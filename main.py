@@ -56,12 +56,14 @@ button_temp2 = KeyboardButton("Spot balance")
 button_temp3 = KeyboardButton("Price monitoring")
 button_temp4 = KeyboardButton("Stop monitoring")
 button_temp5 = KeyboardButton("Crypto alert")
+button_temp6 = KeyboardButton("Stop crypto alert")
 main_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 main_kb.add(button_temp1)
 main_kb.add(button_temp2)
 main_kb.add(button_temp3)
 main_kb.add(button_temp4)
 main_kb.add(button_temp5)
+main_kb.add(button_temp6)
 
 time_button1 = KeyboardButton("5 sec")
 time_button2 = KeyboardButton("1 min")
@@ -130,11 +132,12 @@ async def echo(message: types.Message):
     result_string += f"Balance equivalent in USDT - {own_usd} USDT"
     await message.answer(result_string, reply_markup=main_kb)
 
-#################################
+################################# ALERT
 monitoring_task = None
 monitoring_flag = False
 ticker = ""
 current_state = None
+alert_task = None
 
 @dp.message_handler(lambda message: message.text == 'Crypto alert')
 async def start_crypto_alert(message: types.Message):
@@ -149,6 +152,7 @@ async def set_crypto_alert_symbol(message: types.Message):
     await message.reply("Choose the % of price change to trigger the alert (0.01, 0.1, 1, 5, 10):")
 
 async def crypto_alert_loop(message: types.Message, symbol: str, change: float):
+    global alert_task
     initial_price = await get_btc_usdt_price(symbol)
     target_price_upper = initial_price * (1 + change / 100)
     target_price_lower = initial_price * (1 - change / 100)
@@ -158,16 +162,32 @@ async def crypto_alert_loop(message: types.Message, symbol: str, change: float):
             await message.reply(f"{symbol}/USDT price changed by {change}%. Initial price: ${initial_price:.2f}, Current price: ${current_price:.2f}", reply_markup=main_kb)
             break
         await asyncio.sleep(5)  # You can adjust the frequency of price checking here
+        if alert_task is None:
+            break
+
 
 @dp.message_handler(lambda message: current_state is not None and current_state.get('state') == 'alert_change', Text(equals=['0.01', '0.1', '1', '5', '10']))
 async def set_crypto_alert_change(message: types.Message):
-    global current_state
+    global current_state, alert_task
     symbol = current_state['symbol']
     change = float(message.text)
     current_price = await get_btc_usdt_price(symbol)
     await message.reply(f"Starting crypto alert for {symbol}/USDT with {change}% change. Current price: ${current_price:.2f}", reply_markup=main_kb)
-    asyncio.create_task(crypto_alert_loop(message, symbol, change))
+    alert_task = asyncio.create_task(crypto_alert_loop(message, symbol, change))
     current_state = None
+
+@dp.message_handler(lambda message: message.text == 'Stop crypto alert')
+async def stop_crypto_alert(message: types.Message):
+    global alert_task
+    if alert_task is not None:
+        alert_task.cancel()
+        alert_task = None
+        await message.reply("Crypto alert stopped.", reply_markup=main_kb)
+    else:
+        await message.reply("No crypto alert is currently active.", reply_markup=main_kb)
+
+##################################### MONITORING
+
 
 async def get_btc_usdt_price(symbol: str):
     ticker = client.get_symbol_ticker(symbol=symbol + 'USDT')
