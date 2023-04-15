@@ -77,6 +77,17 @@ time_kb.add(time_button3)
 time_kb.add(time_button4)
 time_kb.add(time_button5)
 
+alert_change_button1 = KeyboardButton("0.01")
+alert_change_button2 = KeyboardButton("0.1")
+alert_change_button3 = KeyboardButton("1")
+alert_change_button4 = KeyboardButton("5")
+alert_change_button5 = KeyboardButton("10")
+alert_change_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+alert_change_kb.add(alert_change_button1, alert_change_button2)
+alert_change_kb.add(alert_change_button3, alert_change_button4)
+alert_change_kb.add(alert_change_button5)
+
+
 async def on_startup(dispatcher):
     await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
 
@@ -149,7 +160,7 @@ async def start_crypto_alert(message: types.Message):
 async def set_crypto_alert_symbol(message: types.Message):
     global current_state
     current_state = {'symbol': message.text, 'state': 'alert_change'}
-    await message.reply("Choose the % of price change to trigger the alert (0.01, 0.1, 1, 5, 10):")
+    await message.reply("Choose the % of price change to trigger the alert:", reply_markup=alert_change_kb)
 
 async def crypto_alert_loop(message: types.Message, symbol: str, change: float):
     global alert_task
@@ -175,6 +186,7 @@ async def set_crypto_alert_change(message: types.Message):
     await message.reply(f"Starting crypto alert for {symbol}/USDT with {change}% change. Current price: ${current_price:.2f}", reply_markup=main_kb)
     alert_task = asyncio.create_task(crypto_alert_loop(message, symbol, change))
     current_state = None
+
 
 @dp.message_handler(lambda message: message.text == 'Stop crypto alert')
 async def stop_crypto_alert(message: types.Message):
