@@ -98,8 +98,6 @@ async def on_shutdown(dispatcher):
 async def send_welcome(message: types.Message):
     await message.reply("Hi!\nI'm CryptoBot!\nPowered by aiogram.", reply_markup=main_kb)
 
-
-print(11111111)
 @dp.message_handler(lambda message: message.text.strip() == 'Crypto price')
 async def start_crypto_price(message: types.Message):
     global states
@@ -107,8 +105,6 @@ async def start_crypto_price(message: types.Message):
     await message.answer("Please input cryptocurrency you want to check")
     print(55555555)
 
-
-print(33333333)
 @dp.message_handler(lambda message: message.text == 'Spot balance')
 async def echo(message: types.Message):
     sum_btc = 0.0
@@ -184,7 +180,7 @@ async def set_crypto_alert_change(message: types.Message):
     symbol = current_state['symbol']
     change = float(message.text)
     current_price = await get_btc_usdt_price(symbol)
-    await message.reply(f"Starting crypto alert for {symbol}/USDT with {change}% change. Current price: ${current_price:.2f}", reply_markup=main_kb)
+    await message.reply(f"Starting crypto alert for {symbol}/USDT with {change}% change. Current price: ${current_price:.3f}", reply_markup=main_kb)
     alert_task = asyncio.create_task(crypto_alert_loop(message, symbol, change))
     current_state = None
 
