@@ -131,27 +131,36 @@ async def echo(message: types.Message):
 #################################
 monitoring_task = None
 
-async def get_btc_usdt_price():
-    ticker = client.get_symbol_ticker(symbol='BTCUSDT')
+async def get_btc_usdt_price(symbol: str):
+    ticker = client.get_symbol_ticker(symbol=symbol + 'USDT')
     return float(ticker['price'])
 
-async def send_btc_usdt_price(message: types.Message):
-    price = await get_btc_usdt_price()
+async def send_crypto_usdt_price(message: types.Message, symbol: str):
+    price = await get_btc_usdt_price(symbol)
     if price:
-        await message.answer(f"Latest BTC/USDT price: ${price:.2f}", parse_mode=ParseMode.MARKDOWN)
+        await message.answer(f"Latest {symbol}/USDT price: ${price:.2f}", parse_mode=ParseMode.MARKDOWN)
     else:
         await message.answer("Sorry, we couldn't fetch the price. Please try again later.")
 
-async def price_update_loop(message: types.Message, interval: int):
+async def price_update_loop(message: types.Message, interval: int, symbol: str):
     while True:
-        await send_btc_usdt_price(message)
+        await send_crypto_usdt_price(message, symbol)
         await asyncio.sleep(interval)  # set interval
 
 @dp.message_handler(lambda message: message.text == 'Price monitoring')
 async def start_price_monitoring(message: types.Message):
     global monitoring_task
     if monitoring_task is None:
-        await message.reply("Choose the monitoring interval:", reply_markup=time_kb)
+        await message.reply("Enter the crypto symbol (e.g., ETH, BTC, APT, BUSD, etc.):")
+    else:
+        await message.reply("Price monitoring is already running. Stop it first.")
+
+@dp.message_handler(regexp='^[A-Z]{2,5}$')
+async def set_crypto_symbol(message: types.Message):
+    global monitoring_task
+    if monitoring_task is None:
+        symbol = message.text
+        await message.reply(f"Choose the monitoring interval for {symbol}/USDT:", reply_markup=time_kb)
     else:
         await message.reply("Price monitoring is already running. Stop it first.")
 
