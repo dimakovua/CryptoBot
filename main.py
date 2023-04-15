@@ -170,6 +170,7 @@ async def crypto_alert_loop(message: types.Message, symbol: str, change: float):
     while True:
         current_price = await get_btc_usdt_price(symbol)
         if current_price >= target_price_upper or current_price <= target_price_lower:
+            alert_task = None
             await message.reply(f"{symbol}/USDT price changed by {change}%. Initial price: ${initial_price:.2f}, Current price: ${current_price:.2f}", reply_markup=main_kb)
             break
         await asyncio.sleep(5)  # You can adjust the frequency of price checking here
