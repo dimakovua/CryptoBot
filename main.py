@@ -61,6 +61,18 @@ main_kb.add(button_temp2)
 main_kb.add(button_temp3)
 main_kb.add(button_temp4)
 
+time_button1 = KeyboardButton("5 sec")
+time_button2 = KeyboardButton("1 min")
+time_button3 = KeyboardButton("30 min")
+time_button4 = KeyboardButton("1 hour")
+time_button5 = KeyboardButton("1 day")
+time_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+time_kb.add(time_button1)
+time_kb.add(time_button2)
+time_kb.add(time_button3)
+time_kb.add(time_button4)
+time_kb.add(time_button5)
+
 async def on_startup(dispatcher):
     await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
 
@@ -130,19 +142,35 @@ async def send_btc_usdt_price(message: types.Message):
     else:
         await message.answer("Sorry, we couldn't fetch the price. Please try again later.")
 
-async def price_update_loop(message: types.Message):
+async def price_update_loop(message: types.Message, interval: int):
     while True:
         await send_btc_usdt_price(message)
-        await asyncio.sleep(1)  # 1 second
+        await asyncio.sleep(interval)  # set interval
 
 @dp.message_handler(lambda message: message.text == 'Price monitoring')
 async def start_price_monitoring(message: types.Message):
     global monitoring_task
     if monitoring_task is None:
-        await message.reply("Starting price monitoring...")
-        monitoring_task = asyncio.create_task(price_update_loop(message))
+        await message.reply("Choose the monitoring interval:", reply_markup=time_kb)
     else:
-        await message.reply("Price monitoring is already running.")
+        await message.reply("Price monitoring is already running. Stop it first.")
+
+@dp.message_handler(lambda message: message.text in ['5 sec', '1 min', '30 min', '1 hour', '1 day'])
+async def set_monitoring_interval(message: types.Message):
+    global monitoring_task
+    if monitoring_task is None:
+        intervals = {
+            '5 sec': 5,
+            '1 min': 60,
+            '30 min': 1800,
+            '1 hour': 3600,
+            '1 day': 86400
+        }
+        interval = intervals[message.text]
+        await message.reply(f"Starting price monitoring every {message.text}...")
+        monitoring_task = asyncio.create_task(price_update_loop(message, interval))
+    else:
+        await message.reply("Price monitoring is already running. Stop it first.")        
 
 @dp.message_handler(lambda message: message.text == 'Stop monitoring')
 async def stop_price_monitoring(message: types.Message):
