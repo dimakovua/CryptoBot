@@ -133,10 +133,12 @@ monitoring_task = None
 monitoring_flag = False
 
 async def get_btc_usdt_price(symbol: str):
+    print("get_btc_usdt_price")
     ticker = client.get_symbol_ticker(symbol=symbol + 'USDT')
     return float(ticker['price'])
 
 async def send_crypto_usdt_price(message: types.Message, symbol: str):
+    print("send_crypto_usdt_price")
     price = await get_btc_usdt_price(symbol)
     if price:
         await message.answer(f"Latest {symbol}/USDT price: ${price:.2f}", parse_mode=ParseMode.MARKDOWN)
@@ -144,6 +146,7 @@ async def send_crypto_usdt_price(message: types.Message, symbol: str):
         await message.answer("Sorry, we couldn't fetch the price. Please try again later.")
 
 async def price_update_loop(message: types.Message, interval: int, symbol: str):
+    print("price_update_loop")
     global monitoring_flag
     monitoring_flag = True
     while monitoring_flag:
@@ -152,6 +155,7 @@ async def price_update_loop(message: types.Message, interval: int, symbol: str):
 
 @dp.message_handler(lambda message: message.text == 'Price monitoring')
 async def start_price_monitoring(message: types.Message):
+    print("start_price_monitoring")
     global monitoring_task
     if monitoring_task is None:
         await message.reply("Enter the crypto symbol (e.g., ETH, BTC, APT, BUSD, etc.):")
@@ -160,6 +164,7 @@ async def start_price_monitoring(message: types.Message):
 
 @dp.message_handler(regexp='^[A-Z]{2,5}$')
 async def set_crypto_symbol(message: types.Message):
+    print("set_crypto_symbol")
     global monitoring_task
     if monitoring_task is None:
         symbol = message.text
@@ -169,6 +174,7 @@ async def set_crypto_symbol(message: types.Message):
 
 @dp.message_handler(lambda message: message.text in ['5 sec', '1 min', '30 min', '1 hour', '1 day'])
 async def set_monitoring_interval(message: types.Message):
+    print("set_monitoring_interval")
     global monitoring_task
     global monitoring_flag
     if monitoring_task is None and not monitoring_flag:
@@ -189,6 +195,7 @@ async def set_monitoring_interval(message: types.Message):
 
 @dp.message_handler(lambda message: message.text == 'Stop monitoring')
 async def stop_price_monitoring(message: types.Message):
+    print("stop_price_monitoring")
     global monitoring_task
     global monitoring_flag
     if monitoring_task is not None:
