@@ -167,10 +167,11 @@ async def set_monitoring_interval(message: types.Message):
             '1 day': 86400
         }
         interval = intervals[message.text]
-        await message.reply(f"Starting price monitoring every {message.text}...")
+        await message.reply(f"Starting price monitoring every {message.text}...", reply_markup=main_kb)
         monitoring_task = asyncio.create_task(price_update_loop(message, interval))
     else:
-        await message.reply("Price monitoring is already running. Stop it first.")        
+        await message.reply("Price monitoring is already running. Stop it first.", reply_markup=main_kb)
+
 
 @dp.message_handler(lambda message: message.text == 'Stop monitoring')
 async def stop_price_monitoring(message: types.Message):
