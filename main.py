@@ -226,7 +226,7 @@ async def start_price_monitoring(message: types.Message):
     else:
         await message.reply("Price monitoring is already running. Stop it first.")
 
-@dp.message_handler(lambda message: states, regexp='^[A-Z]{2,5}$')
+@dp.message_handler(lambda message: states == "monitoring", regexp='^[A-Z]{2,5}$')
 async def set_crypto_symbol(message: types.Message):
     global ticker 
     ticker = message.text
