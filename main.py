@@ -152,7 +152,7 @@ async def start_crypto_alert(message: types.Message):
     current_state = 'alert_symbol'
     await message.reply("Enter the crypto symbol (e.g., ETH, BTC, APT, BUSD, etc.):")
 
-@dp.message_handler(lambda message: current_state == 'alert_symbol', regexp='^[A-Z]{2,5}$')
+@dp.message_handler(lambda message: current_state == 'alert_symbol')
 async def set_crypto_alert_symbol(message: types.Message):
     global current_state
     current_state = {'symbol': message.text, 'state': 'alert_change'}
@@ -233,7 +233,7 @@ async def start_price_monitoring(message: types.Message):
     else:
         await message.reply("Price monitoring is already running. Stop it first.")
 
-@dp.message_handler(lambda message: states == "monitoring", regexp='^[A-Z]{2,5}$')
+@dp.message_handler(lambda message: states == "monitoring")
 async def set_crypto_symbol(message: types.Message):
     global ticker 
     ticker = message.text #####
