@@ -105,7 +105,7 @@ async def start_crypto_price(message: types.Message):
     await message.answer("Please input cryptocurrency you want to check")
     print(55555555)
 
-@dp.message_handler(lambda message: message.text == 'Spot balance')
+@dp.message_handler(lambda message: message.text == 'Spot balance')             ##### NO BUGS
 async def echo(message: types.Message):
     sum_btc = 0.0
     crypto_prices = {}
@@ -219,12 +219,14 @@ async def price_update_loop(message: types.Message, interval: int, symbol: str):
 @dp.message_handler(lambda message: message.text == 'Price monitoring')
 async def start_price_monitoring(message: types.Message):
     global monitoring_task
+    global states
     if monitoring_task is None:
+        states = "monitoring"
         await message.reply("Enter the crypto symbol (e.g., ETH, BTC, APT, BUSD, etc.):")
     else:
         await message.reply("Price monitoring is already running. Stop it first.")
 
-@dp.message_handler(regexp='^[A-Z]{2,5}$')
+@dp.message_handler(lambda message: states, regexp='^[A-Z]{2,5}$')
 async def set_crypto_symbol(message: types.Message):
     global ticker 
     ticker = message.text
@@ -263,9 +265,9 @@ async def stop_price_monitoring(message: types.Message):
         monitoring_flag = False
         monitoring_task.cancel()
         monitoring_task = None
-        await message.reply("Stopping price monitoring...")
+        await message.reply("Stopping price monitoring...", reply_markup=main_kb)
     else:
-        await message.reply("Price monitoring is not running.")
+        await message.reply("Price monitoring is not running.", reply_markup=main_kb)
 
 
 @dp.message_handler()
