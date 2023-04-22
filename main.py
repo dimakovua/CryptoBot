@@ -179,11 +179,16 @@ async def set_crypto_alert_change(message: types.Message):
     global current_state, alert_task
     symbol = current_state['symbol']
     change = float(message.text)
-    current_price = await get_btc_usdt_price(symbol)
-    await message.reply(f"Starting crypto alert for {symbol}/USDT with {change}% change. Current price: ${current_price:.3f}", reply_markup=main_kb)
-    alert_task = asyncio.create_task(crypto_alert_loop(message, symbol, change))
     current_state = None
+    try:
+        current_price = await get_btc_usdt_price(symbol)
+        await message.reply(f"Starting crypto alert for {symbol}/USDT with {change}% change. Current price: ${current_price:.3f}", reply_markup=main_kb)
+        alert_task = asyncio.create_task(crypto_alert_loop(message, symbol, change))
+    except:
+        current_state = 'alert_symbol' ## Bug fixed with wrong alert symbol
+        await message.answer(f"Please try to insert crypto ticker again.")
 
+    
 
 @dp.message_handler(lambda message: message.text == 'Stop crypto alert')
 async def stop_crypto_alert(message: types.Message):
@@ -229,7 +234,7 @@ async def start_price_monitoring(message: types.Message):
 @dp.message_handler(lambda message: states == "monitoring", regexp='^[A-Z]{2,5}$')
 async def set_crypto_symbol(message: types.Message):
     global ticker 
-    ticker = message.text
+    ticker = message.text #####
     global monitoring_task
     if monitoring_task is None:
         symbol = message.text
@@ -251,8 +256,12 @@ async def set_monitoring_interval(message: types.Message):
             '1 day': 86400
         }
         interval = intervals[message.text]
-        await message.reply(f"Starting price monitoring for {ticker}/USDT every {message.text}...", reply_markup=main_kb)
-        monitoring_task = asyncio.create_task(price_update_loop(message, interval, ticker))
+        try:
+            aboba = await get_btc_usdt_price(ticker)
+            await message.reply(f"Starting price monitoring for {ticker}/USDT every {message.text}...", reply_markup=main_kb)
+            monitoring_task = asyncio.create_task(price_update_loop(message, interval, ticker))
+        except:
+            await message.answer(f"Please try to insert crypto ticker again.")
     else:
         await message.reply("Price monitoring is already running. Stop it first.", reply_markup=main_kb)
 
