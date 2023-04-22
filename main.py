@@ -270,24 +270,19 @@ async def stop_price_monitoring(message: types.Message):
         await message.reply("Price monitoring is not running.", reply_markup=main_kb)
 
 
-@dp.message_handler()
+@dp.message_handler(lambda message: states == "crypto_price")                   ### Optimised
 async def process_crypto(message: types.Message, state: FSMContext):
     global states
-    if (states == "crypto_price"):
-        try:
-            crypto_symbol = message.text.upper()
-            btc_price_json = client.get_symbol_ticker(symbol=f"{crypto_symbol}USDT")
-            states = ""
-            await message.answer(f"{crypto_symbol} costs {round(float(btc_price_json['price']), 4)} USDT", reply_markup=main_kb)
-        except:
-            states = ""
-            if (crypto_symbol=="USDT"):
-                await message.answer(f"USDT costs 1.0000 USDT", reply_markup=main_kb)
-            else:
-                await message.answer(f"Please try again, no crypto available", reply_markup=main_kb)
-    else:
-        states = ""
-        await message.answer("Use button")
+    states = ""
+    try:
+        crypto_symbol = message.text.upper()
+        btc_price_json = client.get_symbol_ticker(symbol=f"{crypto_symbol}USDT")
+        await message.answer(f"{crypto_symbol} costs {round(float(btc_price_json['price']), 4)} USDT", reply_markup=main_kb)
+    except:
+        if (crypto_symbol=="USDT"):
+            await message.answer(f"USDT costs 1.0000 USDT", reply_markup=main_kb)
+        else:
+            await message.answer(f"Please try again, no crypto available", reply_markup=main_kb)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
