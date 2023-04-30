@@ -20,7 +20,7 @@ from aiogram import types
 
 from config import TOKEN, API_KEY, SECRET_KEY
 from keyboards import Keyboards
-
+from MySQLConnection import MySQLConnection
 kb = Keyboards()
 states = ""
 is_monitoring = False
@@ -260,4 +260,16 @@ async def process_crypto(message: types.Message, state: FSMContext):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
+    sql = MySQLConnection()
+    sql.use_pair("BTC/USDT")
+    sql.use_pair("BTC/USDT")
+    sql.use_pair("BTC/USDT")
+    sql.use_pair("BTC/USDT")
+    sql.use_pair("BTC/ETH")
+    sql.use_pair("BTC/ETH")
+    sql.use_pair("BTC/ETH")
+    sql.use_pair("ETH/USDT")
+    sql.use_pair("ETH/USDT")
+    sql.use_pair("ETH/BTC")
+    print(sql.get_pairs(3))
     executor.start_polling(dp, skip_updates=True)
