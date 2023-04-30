@@ -8,11 +8,7 @@ import asyncio
 import os
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
-from aiogram.utils.executor import start_webhook
 from aiogram.utils import executor
-from aiogram.types import ReplyKeyboardRemove, \
-    ReplyKeyboardMarkup, KeyboardButton, \
-    InlineKeyboardMarkup, InlineKeyboardButton, message
 from binance.client import Client
 
 from aiogram.dispatcher.filters import Text
@@ -22,28 +18,12 @@ from aiogram.dispatcher import FSMContext
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram import types
 
-# Import the FSM and its states
-from aiogram.dispatcher.filters import Command
-from aiogram.dispatcher.filters.state import State, StatesGroup
-
 from config import TOKEN, API_KEY, SECRET_KEY
+from keyboards import Keyboards
 
+kb = Keyboards()
 states = ""
 is_monitoring = False
-
-#from config import TOKEN, SECRET_KEY, API_KEY
-
-# TOKEN = os.getenv('BOT_TOKEN')
-# HEROKU_APP_NAME = os.getenv('HEROKU_APP_NAME')
-# API_KEY = os.getenv('API_KEY')
-# SECRET_KEY = os.getenv('SECRET_KEY')
-# # Webhook settings
-# WEBHOOK_HOST = f'https://{HEROKU_APP_NAME}.herokuapp.com'
-# WEBHOOK_PATH = f'/webhook/{TOKEN}'
-# WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
-
-# WEBAPP_HOST = '0.0.0.0'
-# WEBAPP_PORT = os.getenv('PORT', default=8000)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -53,52 +33,13 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 client = Client(API_KEY, SECRET_KEY)
 
-button_temp1 = KeyboardButton("Crypto price")
-button_temp2 = KeyboardButton("Spot balance")
-button_temp3 = KeyboardButton("Price monitoring")
-button_temp4 = KeyboardButton("Stop monitoring")
-button_temp5 = KeyboardButton("Crypto alert")
-button_temp6 = KeyboardButton("Stop crypto alert")
-main_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-main_kb.add(button_temp1)
-main_kb.add(button_temp2)
-main_kb.add(button_temp3)
-main_kb.add(button_temp4)
-main_kb.add(button_temp5)
-main_kb.add(button_temp6)
-
-time_button1 = KeyboardButton("5 sec")
-time_button2 = KeyboardButton("1 min")
-time_button3 = KeyboardButton("30 min")
-time_button4 = KeyboardButton("1 hour")
-time_button5 = KeyboardButton("1 day")
-time_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-time_kb.add(time_button1)
-time_kb.add(time_button2)
-time_kb.add(time_button3)
-time_kb.add(time_button4)
-time_kb.add(time_button5)
-
-alert_change_button1 = KeyboardButton("0.01")
-alert_change_button2 = KeyboardButton("0.1")
-alert_change_button3 = KeyboardButton("1")
-alert_change_button4 = KeyboardButton("5")
-alert_change_button5 = KeyboardButton("10")
-alert_change_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-alert_change_kb.add(alert_change_button1, alert_change_button2)
-alert_change_kb.add(alert_change_button3, alert_change_button4)
-alert_change_kb.add(alert_change_button5)
-
-
-# async def on_startup(dispatcher):
-#     await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
-
-# async def on_shutdown(dispatcher):
-#     await bot.delete_webhook()
+#-----------------------------------------------------------------------------#
 
 @dp.message_handler(commands=['start', 'help'])
 async def send_welcome(message: types.Message):
-    await message.reply("Hi!\nI'm CryptoBot!\nPowered by aiogram.", reply_markup=main_kb)
+    await message.reply("Hi!\nI'm CryptoBot!\nPowered by aiogram.", reply_markup=kb.main_kb)
+
+#-----------------------------------------------------------------------------#
 
 @dp.message_handler(lambda message: message.text.strip() == 'Crypto price')
 async def start_crypto_price(message: types.Message):
@@ -107,7 +48,9 @@ async def start_crypto_price(message: types.Message):
     await message.answer("Please input cryptocurrency you want to check")
     print(55555555)
 
-@dp.message_handler(lambda message: message.text == 'Spot balance')             ##### NO BUGS
+#-----------------------------------------------------------------------------#
+
+@dp.message_handler(lambda message: message.text == 'Spot balance')
 async def echo(message: types.Message):
     sum_btc = 0.0
     crypto_prices = {}
@@ -139,8 +82,9 @@ async def echo(message: types.Message):
     result_string += f"{usdt_balance['free']} USDT\n"
     result_string += f"Balance equivalent in BTC - {sum_btc} BTC\n"
     result_string += f"Balance equivalent in USDT - {own_usd} USDT"
-    await message.answer(result_string, reply_markup=main_kb)
+    await message.answer(result_string, reply_markup=kb.main_kb)
 
+#-----------------------------------------------------------------------------#
 ################################# ALERT
 monitoring_task = None
 monitoring_flag = False
@@ -154,6 +98,8 @@ async def start_crypto_alert(message: types.Message):
     current_state = 'alert_symbol'
     await message.reply("Enter the crypto symbol (e.g., ETH, BTC, APT, BUSD, etc.):")
 
+#-----------------------------------------------------------------------------#
+
 @dp.message_handler(lambda message: current_state == 'alert_symbol', regexp='^[A-Z]{2,10}$')
 async def set_crypto_alert_symbol(message: types.Message):
     global current_state
@@ -161,10 +107,12 @@ async def set_crypto_alert_symbol(message: types.Message):
     symbol = current_state['symbol']
     try:
         aboba = await get_btc_usdt_price(symbol)
-        await message.reply("Choose the % of price change to trigger the alert:", reply_markup=alert_change_kb)
+        await message.reply("Choose the % of price change to trigger the alert:", reply_markup=kb.alert_change_kb)
     except:
         current_state = 'alert_symbol'
         await message.answer(f"Please try to insert crypto ticker again.")
+
+#-----------------------------------------------------------------------------#
 
 async def crypto_alert_loop(message: types.Message, symbol: str, change: float):
     global alert_task
@@ -175,12 +123,13 @@ async def crypto_alert_loop(message: types.Message, symbol: str, change: float):
         current_price = await get_btc_usdt_price(symbol)
         if current_price >= target_price_upper or current_price <= target_price_lower:
             alert_task = None
-            await message.reply(f"{symbol}/USDT price changed by {change}%. Initial price: ${initial_price:.3f}, Current price: ${current_price:.3f}", reply_markup=main_kb)
+            await message.reply(f"{symbol}/USDT price changed by {change}%. Initial price: ${initial_price:.3f}, Current price: ${current_price:.3f}", reply_markup=kb.main_kb)
             break
         await asyncio.sleep(5)  # You can adjust the frequency of price checking here
         if alert_task is None:
             break
 
+#-----------------------------------------------------------------------------#
 
 @dp.message_handler(lambda message: current_state is not None and current_state.get('state') == 'alert_change', Text(equals=['0.01', '0.1', '1', '5', '10']))
 async def set_crypto_alert_change(message: types.Message):
@@ -189,10 +138,10 @@ async def set_crypto_alert_change(message: types.Message):
     change = float(message.text)
     current_state = None
     current_price = await get_btc_usdt_price(symbol)
-    await message.reply(f"Starting crypto alert for {symbol}/USDT with {change}% change. Current price: ${current_price:.3f}", reply_markup=main_kb)
+    await message.reply(f"Starting crypto alert for {symbol}/USDT with {change}% change. Current price: ${current_price:.3f}", reply_markup=kb.main_kb)
     alert_task = asyncio.create_task(crypto_alert_loop(message, symbol, change))
 
-    
+#-----------------------------------------------------------------------------#
 
 @dp.message_handler(lambda message: message.text == 'Stop crypto alert')
 async def stop_crypto_alert(message: types.Message):
@@ -200,16 +149,18 @@ async def stop_crypto_alert(message: types.Message):
     if alert_task is not None:
         alert_task.cancel()
         alert_task = None
-        await message.reply("Crypto alert stopped.", reply_markup=main_kb)
+        await message.reply("Crypto alert stopped.", reply_markup=kb.main_kb)
     else:
-        await message.reply("No crypto alert is currently active.", reply_markup=main_kb)
+        await message.reply("No crypto alert is currently active.", reply_markup=kb.main_kb)
 
+#-----------------------------------------------------------------------------#
 ##################################### MONITORING
-
 
 async def get_btc_usdt_price(symbol: str):
     ticker = client.get_symbol_ticker(symbol=symbol + 'USDT')
     return float(ticker['price'])
+
+#-----------------------------------------------------------------------------#
 
 async def send_crypto_usdt_price(message: types.Message, symbol: str):
     price = await get_btc_usdt_price(symbol)
@@ -225,6 +176,8 @@ async def price_update_loop(message: types.Message, interval: int, symbol: str):
         await send_crypto_usdt_price(message, symbol)
         await asyncio.sleep(interval)  # set interval
 
+#-----------------------------------------------------------------------------#
+
 @dp.message_handler(lambda message: message.text == 'Price monitoring')
 async def start_price_monitoring(message: types.Message):
     global monitoring_task
@@ -235,6 +188,8 @@ async def start_price_monitoring(message: types.Message):
     else:
         await message.reply("Price monitoring is already running. Stop it first.")
 
+#-----------------------------------------------------------------------------#
+
 @dp.message_handler(lambda message: states == "monitoring", regexp='^[A-Z]{2,10}$')
 async def set_crypto_symbol(message: types.Message):
     global ticker 
@@ -244,12 +199,13 @@ async def set_crypto_symbol(message: types.Message):
         global monitoring_task
         if monitoring_task is None:
             symbol = message.text
-            await message.reply(f"Choose the monitoring interval for {symbol}/USDT:", reply_markup=time_kb)
+            await message.reply(f"Choose the monitoring interval for {symbol}/USDT:", reply_markup=kb.time_kb)
         else:
             await message.reply("Price monitoring is already running. Stop it first.")
     except:
         await message.answer(f"Please try to insert crypto ticker again.")
 
+#-----------------------------------------------------------------------------#
 
 @dp.message_handler(lambda message: message.text in ['5 sec', '1 min', '30 min', '1 hour', '1 day'])
 async def set_monitoring_interval(message: types.Message):
@@ -265,11 +221,12 @@ async def set_monitoring_interval(message: types.Message):
             '1 day': 86400
         }
         interval = intervals[message.text]
-        await message.reply(f"Starting price monitoring for {ticker}/USDT every {message.text}...", reply_markup=main_kb)
+        await message.reply(f"Starting price monitoring for {ticker}/USDT every {message.text}...", reply_markup=kb.main_kb)
         monitoring_task = asyncio.create_task(price_update_loop(message, interval, ticker))
     else:
-        await message.reply("Price monitoring is already running. Stop it first.", reply_markup=main_kb)
+        await message.reply("Price monitoring is already running. Stop it first.", reply_markup=kb.main_kb)
 
+#-----------------------------------------------------------------------------#
 
 @dp.message_handler(lambda message: message.text == 'Stop monitoring')
 async def stop_price_monitoring(message: types.Message):
@@ -279,10 +236,11 @@ async def stop_price_monitoring(message: types.Message):
         monitoring_flag = False
         monitoring_task.cancel()
         monitoring_task = None
-        await message.reply("Stopping price monitoring...", reply_markup=main_kb)
+        await message.reply("Stopping price monitoring...", reply_markup=kb.main_kb)
     else:
-        await message.reply("Price monitoring is not running.", reply_markup=main_kb)
+        await message.reply("Price monitoring is not running.", reply_markup=kb.main_kb)
 
+#-----------------------------------------------------------------------------#
 
 @dp.message_handler(lambda message: states == "crypto_price")                   ### Optimised
 async def process_crypto(message: types.Message, state: FSMContext):
@@ -291,22 +249,15 @@ async def process_crypto(message: types.Message, state: FSMContext):
     try:
         crypto_symbol = message.text.upper()
         btc_price_json = client.get_symbol_ticker(symbol=f"{crypto_symbol}USDT")
-        await message.answer(f"{crypto_symbol} costs {round(float(btc_price_json['price']), 4)} USDT", reply_markup=main_kb)
+        await message.answer(f"{crypto_symbol} costs {round(float(btc_price_json['price']), 4)} USDT", reply_markup=kb.main_kb)
     except:
         if (crypto_symbol=="USDT"):
-            await message.answer(f"USDT costs 1.0000 USDT", reply_markup=main_kb)
+            await message.answer(f"USDT costs 1.0000 USDT", reply_markup=kb.main_kb)
         else:
-            await message.answer(f"Please try again, no crypto available", reply_markup=main_kb)
+            await message.answer(f"Please try again, no crypto available", reply_markup=kb.main_kb)
+
+#-----------------------------------------------------------------------------#
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     executor.start_polling(dp, skip_updates=True)
-    # start_webhook(
-    #     dispatcher=dp,
-    #     webhook_path=WEBHOOK_PATH,
-    #     skip_updates=True,
-    #     on_startup=on_startup,
-    #     on_shutdown=on_shutdown,
-    #     host=WEBAPP_HOST,
-    #     port=WEBAPP_PORT,
-    # )
