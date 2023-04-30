@@ -1,12 +1,14 @@
 from aiogram.types import ReplyKeyboardRemove, \
     ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton, message
+from MySQLConnection import MySQLConnection
 
 class Keyboards:
     main_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     time_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     alert_change_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    
+    favourites_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+
     def __init__(self):
         button_temp1 = KeyboardButton("Crypto price")
         button_temp2 = KeyboardButton("Spot balance")
@@ -43,3 +45,10 @@ class Keyboards:
         self.alert_change_kb.add(alert_change_button1, alert_change_button2)
         self.alert_change_kb.add(alert_change_button3, alert_change_button4)
         self.alert_change_kb.add(alert_change_button5)
+    
+    def update_favourites(self, sql : MySQLConnection):
+        sql_result = sql.get_pairs(3)
+        self.favourites_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        for item in sql_result:
+            button = KeyboardButton(item[0])
+            self.favourites_kb.add(button)

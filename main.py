@@ -21,7 +21,12 @@ from aiogram import types
 from config import TOKEN, API_KEY, SECRET_KEY
 from keyboards import Keyboards
 from MySQLConnection import MySQLConnection
+
+# Create objects
+sql = MySQLConnection()
 kb = Keyboards()
+
+# Global flags
 states = ""
 is_monitoring = False
 
@@ -44,9 +49,11 @@ async def send_welcome(message: types.Message):
 @dp.message_handler(lambda message: message.text.strip() == 'Crypto price')
 async def start_crypto_price(message: types.Message):
     global states
+    global sql
+    global kb
+    kb.update_favourites(sql)
     states = "crypto_price"
-    await message.answer("Please input cryptocurrency you want to check")
-    print(55555555)
+    await message.answer("Please input cryptocurrency you want to check or choose from your favourites", reply_markup=kb.favourites_kb)
 
 #-----------------------------------------------------------------------------#
 
@@ -245,31 +252,25 @@ async def stop_price_monitoring(message: types.Message):
 @dp.message_handler(lambda message: states == "crypto_price")                   ### Optimised
 async def process_crypto(message: types.Message, state: FSMContext):
     global states
+    global sql
+    global kb
     states = ""
     try:
         crypto_symbol = message.text.upper()
         btc_price_json = client.get_symbol_ticker(symbol=f"{crypto_symbol}USDT")
         await message.answer(f"{crypto_symbol} costs {round(float(btc_price_json['price']), 4)} USDT", reply_markup=kb.main_kb)
+        sql.use_pair(crypto_symbol)
     except:
         if (crypto_symbol=="USDT"):
+            sql.use_pair(crypto_symbol)
             await message.answer(f"USDT costs 1.0000 USDT", reply_markup=kb.main_kb)
         else:
-            await message.answer(f"Please try again, no crypto available", reply_markup=kb.main_kb)
+            kb.update_favourites(sql)
+            states = "crypto_price"
+            await message.answer(f"Please try again, no crypto available", reply_markup=kb.favourites_kb)
 
 #-----------------------------------------------------------------------------#
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    sql = MySQLConnection()
-    sql.use_pair("BTC/USDT")
-    sql.use_pair("BTC/USDT")
-    sql.use_pair("BTC/USDT")
-    sql.use_pair("BTC/USDT")
-    sql.use_pair("BTC/ETH")
-    sql.use_pair("BTC/ETH")
-    sql.use_pair("BTC/ETH")
-    sql.use_pair("ETH/USDT")
-    sql.use_pair("ETH/USDT")
-    sql.use_pair("ETH/BTC")
-    print(sql.get_pairs(3))
     executor.start_polling(dp, skip_updates=True)
