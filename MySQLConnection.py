@@ -34,3 +34,4 @@ class MySQLConnection:
             self.cursor.execute(f"INSERT INTO Pairs (name, priority) VALUES ('{name}', 1);")
         else:
             self.cursor.execute(f"UPDATE Pairs SET priority = priority + 1 WHERE name = '{name}';")
+        self.connect.commit()
